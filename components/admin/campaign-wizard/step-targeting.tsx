@@ -1,16 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useCampaignWizardStore } from '@/lib/stores/campaign-wizard-store'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { ArrowLeft, ArrowRight, Search, Loader2 } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { ArrowLeft, ArrowRight, ChevronsUpDown, Loader2, X, Check } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface District {
   id: string
@@ -29,6 +35,7 @@ export function StepTargeting() {
 
   const [districts, setDistricts] = useState<District[]>([])
   const [loading, setLoading] = useState(true)
+  const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState<Set<string>>(new Set(selectedDistricts))
 
@@ -38,6 +45,7 @@ export function StepTargeting() {
       const { data, error } = await supabase
         .from('districts')
         .select('id, code, name, state')
+        .is('organization_id', null)
         .order('state')
         .order('code')
 
@@ -49,21 +57,28 @@ export function StepTargeting() {
     fetchDistricts()
   }, [])
 
-  const filteredDistricts = districts.filter(
-    (d) =>
-      d.code.toLowerCase().includes(search.toLowerCase()) ||
-      d.name.toLowerCase().includes(search.toLowerCase()) ||
-      d.state.toLowerCase().includes(search.toLowerCase())
-  )
+  // Get selected district objects for display
+  const selectedDistrictObjects = useMemo(() => {
+    return districts.filter((d) => selected.has(d.id))
+  }, [districts, selected])
 
-  const groupedByState = filteredDistricts.reduce<Record<string, District[]>>(
-    (acc, district) => {
+  // Group districts by state for the dropdown
+  const groupedByState = useMemo(() => {
+    const filtered = search
+      ? districts.filter(
+          (d) =>
+            d.code.toLowerCase().includes(search.toLowerCase()) ||
+            d.name.toLowerCase().includes(search.toLowerCase()) ||
+            d.state.toLowerCase().includes(search.toLowerCase())
+        )
+      : districts
+
+    return filtered.reduce<Record<string, District[]>>((acc, district) => {
       if (!acc[district.state]) acc[district.state] = []
       acc[district.state].push(district)
       return acc
-    },
-    {}
-  )
+    }, {})
+  }, [districts, search])
 
   const toggleDistrict = (id: string) => {
     setSelected((prev) => {
@@ -77,6 +92,14 @@ export function StepTargeting() {
     })
   }
 
+  const removeDistrict = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }
+
   const selectAllInState = (state: string) => {
     const stateDistricts = districts.filter((d) => d.state === state)
     setSelected((prev) => {
@@ -84,6 +107,20 @@ export function StepTargeting() {
       stateDistricts.forEach((d) => next.add(d.id))
       return next
     })
+  }
+
+  const deselectAllInState = (state: string) => {
+    const stateDistricts = districts.filter((d) => d.state === state)
+    setSelected((prev) => {
+      const next = new Set(prev)
+      stateDistricts.forEach((d) => next.delete(d.id))
+      return next
+    })
+  }
+
+  const isStateFullySelected = (state: string) => {
+    const stateDistricts = districts.filter((d) => d.state === state)
+    return stateDistricts.every((d) => selected.has(d.id))
   }
 
   const handleBack = () => {
@@ -106,7 +143,7 @@ export function StepTargeting() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Selected count */}
+        {/* Selected count and clear button */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Badge variant="secondary">{selected.size} selected</Badge>
@@ -122,70 +159,104 @@ export function StepTargeting() {
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search districts..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
+        {/* Selected districts as badges */}
+        {selectedDistrictObjects.length > 0 && (
+          <div className="flex flex-wrap gap-2 rounded-md border p-3">
+            {selectedDistrictObjects.map((district) => (
+              <Badge
+                key={district.id}
+                variant="secondary"
+                className="flex items-center gap-1 pr-1"
+              >
+                {district.code}
+                <button
+                  type="button"
+                  onClick={() => removeDistrict(district.id)}
+                  className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
+                >
+                  <X className="h-3 w-3" />
+                  <span className="sr-only">Remove {district.code}</span>
+                </button>
+              </Badge>
+            ))}
+          </div>
+        )}
 
-        {/* District list */}
+        {/* Command-based autocomplete */}
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
-        ) : districts.length === 0 ? (
-          <div className="flex h-64 flex-col items-center justify-center text-center">
-            <p className="text-muted-foreground">No districts found</p>
-            <p className="text-sm text-muted-foreground">
-              Districts need to be added to your organization first
-            </p>
-          </div>
         ) : (
-          <ScrollArea className="h-64 rounded-md border p-4">
-            {Object.entries(groupedByState).map(([state, stateDistricts]) => (
-              <div key={state} className="mb-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <Label className="text-sm font-semibold">{state}</Label>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 text-xs"
-                    onClick={() => selectAllInState(state)}
-                  >
-                    Select all
-                  </Button>
-                </div>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {stateDistricts.map((district) => (
-                    <div
-                      key={district.id}
-                      className="flex items-center space-x-2 rounded-md border p-2 hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        id={district.id}
-                        checked={selected.has(district.id)}
-                        onCheckedChange={() => toggleDistrict(district.id)}
-                      />
-                      <Label
-                        htmlFor={district.id}
-                        className="flex-1 cursor-pointer text-sm"
-                      >
-                        {district.code}
-                        <span className="ml-2 text-muted-foreground">
-                          {district.name}
+          <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between"
+              >
+                Search districts...
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[400px] p-0" align="start">
+              <Command shouldFilter={false}>
+                <CommandInput
+                  placeholder="Search by district code, name, or state..."
+                  value={search}
+                  onValueChange={setSearch}
+                />
+                <CommandList className="max-h-[300px]">
+                  <CommandEmpty>No districts found.</CommandEmpty>
+                  {Object.entries(groupedByState).map(([state, stateDistricts]) => (
+                    <CommandGroup key={state} heading={state}>
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <span className="text-xs text-muted-foreground">
+                          {stateDistricts.filter((d) => selected.has(d.id)).length} of{' '}
+                          {stateDistricts.length} selected
                         </span>
-                      </Label>
-                    </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            if (isStateFullySelected(state)) {
+                              deselectAllInState(state)
+                            } else {
+                              selectAllInState(state)
+                            }
+                          }}
+                        >
+                          {isStateFullySelected(state) ? 'Deselect all' : 'Select all'}
+                        </Button>
+                      </div>
+                      {stateDistricts.map((district) => (
+                        <CommandItem
+                          key={district.id}
+                          value={district.id}
+                          onSelect={() => toggleDistrict(district.id)}
+                        >
+                          <Check
+                            className={cn(
+                              'mr-2 h-4 w-4',
+                              selected.has(district.id) ? 'opacity-100' : 'opacity-0'
+                            )}
+                          />
+                          <span className="font-medium">{district.code}</span>
+                          <span className="ml-2 text-muted-foreground">
+                            {district.name}
+                          </span>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
                   ))}
-                </div>
-              </div>
-            ))}
-          </ScrollArea>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
         )}
 
         {/* Navigation */}

@@ -47,7 +47,7 @@ export interface Database {
       districts: {
         Row: {
           id: string
-          organization_id: string
+          organization_id: string | null
           code: string
           name: string
           state: string

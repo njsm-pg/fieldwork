@@ -147,14 +147,33 @@ export default function SettingsPage() {
         .eq('id', user.id)
         .single()
 
-      if (!userData?.organization_id) throw new Error('No organization found')
+      if (!userData?.organization_id) {
+        // Create new organization
+        const { data: newOrg, error: createError } = await supabase
+          .from('organizations')
+          .insert({ name: orgName, slug: orgSlug })
+          .select()
+          .single()
 
-      const { error } = await supabase
-        .from('organizations')
-        .update({ name: orgName, slug: orgSlug })
-        .eq('id', userData.organization_id)
+        if (createError) throw createError
 
-      if (error) throw error
+        // Link organization to user
+        const { error: updateUserError } = await supabase
+          .from('users')
+          .update({ organization_id: newOrg.id })
+          .eq('id', user.id)
+
+        if (updateUserError) throw updateUserError
+      } else {
+        // Update existing organization
+        const { error } = await supabase
+          .from('organizations')
+          .update({ name: orgName, slug: orgSlug })
+          .eq('id', userData.organization_id)
+
+        if (error) throw error
+      }
+
       setSuccess(true)
     } catch (err: any) {
       setError(err.message)

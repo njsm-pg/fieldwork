@@ -143,9 +143,9 @@ export function StepReview() {
         })
       }
 
-      // Reset wizard and redirect
+      // Reset wizard and redirect to campaigns list
       store.reset()
-      router.push(`/campaigns/${campaign.id}`)
+      router.push('/campaigns')
     } catch (err: any) {
       console.error('Error creating campaign:', err)
       setError(err.message || 'Failed to create campaign')
