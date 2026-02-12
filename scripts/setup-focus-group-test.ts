@@ -95,6 +95,11 @@ async function createTestCampaign() {
     org = newOrg
   }
 
+  if (!org) {
+    console.error('No organization available')
+    return null
+  }
+
   // Check if a focus group campaign already exists
   const { data: existingCampaign } = await supabase
     .from('campaigns')
