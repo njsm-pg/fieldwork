@@ -176,6 +176,8 @@ export interface Database {
           id: string
           campaign_id: string
           session_id: string | null
+          first_name: string | null
+          last_name: string | null
           email: string | null
           phone: string | null
           zip_code: string | null
