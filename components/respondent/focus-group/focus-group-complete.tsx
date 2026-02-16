@@ -16,6 +16,9 @@ export function FocusGroupComplete({
     <div className="flex min-h-screen flex-col">
       {/* Header with progress */}
       <header className="border-b bg-background px-4 py-4">
+        <div className="text-center mb-3">
+          <h1 className="text-sm font-semibold text-muted-foreground">Persona Grata Inc.</h1>
+        </div>
         <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
           <span>Complete</span>
           <span>100% Complete</span>

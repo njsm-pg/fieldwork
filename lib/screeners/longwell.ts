@@ -12,6 +12,7 @@ export const longwellScreener: FocusGroupScreenerConfig = {
       id: 'consent',
       type: 'consent',
       title: 'Consent & Verification',
+      description: 'Select all to proceed',
       consents: [
         {
           id: 'age_consent',
