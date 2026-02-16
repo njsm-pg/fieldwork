@@ -133,8 +133,8 @@ async function createTestCampaign() {
       utm_source: 'direct',
       utm_medium: 'none',
       overfill_handling: 'allow_10',
-      privacy_policy_url: 'https://personagrata.co/privacy',
-      contact_email: 'research@personagrata.co',
+      privacy_policy_url: 'https://personagrata.ai/privacy',
+      contact_email: 'research@personagrata.ai',
       settings: {
         screenerId: 'longwell',
       },

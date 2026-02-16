@@ -45,7 +45,7 @@ export default async function FocusGroupLandingPage({ params }: Props) {
       campaignId={campaign.id}
       screener={screener}
       privacyPolicyUrl={campaign.privacy_policy_url}
-      termsUrl="https://personagrata.co/terms"
+      termsUrl="https://personagrata.ai/terms"
     />
   )
 }

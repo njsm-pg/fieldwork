@@ -30,7 +30,7 @@ export default async function FocusGroupThankYouPage({ params }: Props) {
   return (
     <FocusGroupComplete
       privacyPolicyUrl={campaign.privacy_policy_url}
-      termsUrl="https://personagrata.co/terms"
+      termsUrl="https://personagrata.ai/terms"
     />
   )
 }
