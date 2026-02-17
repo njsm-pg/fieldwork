@@ -193,7 +193,7 @@ export function FocusGroupScreener({
       </header>
 
       {/* Question content */}
-      <main className="flex-1 p-4">
+      <main className="flex-1 p-4 overflow-y-auto">
         {error && (
           <Alert variant="destructive" className="mb-4">
             <AlertCircle className="h-4 w-4" />
@@ -220,9 +220,9 @@ export function FocusGroupScreener({
         />
       </main>
 
-      {/* Disclosure footer */}
-      <div className="border-t bg-muted/30 px-4 py-3">
-        <p className="text-[10px] text-muted-foreground leading-relaxed">
+      {/* Combined footer with disclosure and navigation */}
+      <footer className="border-t bg-background px-4 py-3 mt-auto">
+        <p className="text-[10px] text-muted-foreground leading-relaxed mb-3">
           <strong>Disclosure:</strong> Participation in this research does not guarantee eligibility for an incentive. Only individuals who meet our client&apos;s criteria will be invited to participate.
           {(termsUrl || privacyPolicyUrl) && (
             <>
@@ -242,10 +242,6 @@ export function FocusGroupScreener({
             </>
           )}
         </p>
-      </div>
-
-      {/* Navigation footer */}
-      <footer className="border-t bg-background p-4">
         <div className="flex gap-3">
           <Button
             type="button"
