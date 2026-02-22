@@ -235,10 +235,59 @@ export const longwellScreener: FocusGroupScreenerConfig = {
   ],
 }
 
+// Short version with only consent and contact info
+export const longwellShortScreener: FocusGroupScreenerConfig = {
+  id: 'longwell-short',
+  name: 'Longwell Focus Group Screener (Short)',
+  description: 'Shortened screener for Colorado 5th District focus group recruitment',
+  incentiveAmount: 120,
+  incentiveMethod: 'gift_card',
+  estimatedMinutes: 2,
+  questions: [
+    {
+      id: 'consent',
+      type: 'consent',
+      title: 'Consent & Verification',
+      description: 'Select all to proceed',
+      consents: [
+        {
+          id: 'age_consent',
+          text: 'I confirm that I am 18 years of age or older',
+          required: true,
+        },
+        {
+          id: 'data_consent',
+          text: 'I consent to my responses being collected, stored, and analyzed for research purposes',
+          required: true,
+        },
+        {
+          id: 'contact_consent',
+          text: 'I agree to be contacted for follow-up questions or clarifications',
+          required: true,
+        },
+      ],
+    },
+    {
+      id: 'contact_info',
+      type: 'contact_info',
+      title: 'Contact Information',
+      fields: {
+        firstName: true,
+        lastName: true,
+        email: true,
+        phone: true,
+      },
+    },
+  ],
+}
+
 // Export a function to get screener by ID
 export function getScreenerConfig(screenerId: string): FocusGroupScreenerConfig | null {
   if (screenerId === 'longwell-v1' || screenerId === 'longwell') {
     return longwellScreener
+  }
+  if (screenerId === 'longwell-short') {
+    return longwellShortScreener
   }
   return null
 }
