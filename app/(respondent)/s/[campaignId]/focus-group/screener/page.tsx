@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { FocusGroupScreener } from '@/components/respondent/focus-group'
-import { longwellScreener } from '@/lib/screeners/longwell'
+import { getScreenerConfig } from '@/lib/screeners/longwell'
 
 interface Props {
   params: Promise<{ campaignId: string }>
@@ -35,9 +35,13 @@ export default async function FocusGroupScreenerPage({ params }: Props) {
     notFound()
   }
 
-  // Get screener config - for now, default to Longwell
+  // Get screener config based on campaign settings
   const screenerId = (campaign.settings as any)?.screenerId || 'longwell'
-  const screener = screenerId === 'longwell' ? longwellScreener : longwellScreener
+  const screener = getScreenerConfig(screenerId)
+
+  if (!screener) {
+    notFound()
+  }
 
   return (
     <FocusGroupScreener
