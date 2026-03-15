@@ -29,27 +29,20 @@ export default async function FocusGroupThankYouPage({ params }: Props) {
     notFound()
   }
 
-  const screenerId = (campaign.settings as any)?.screenerId || 'longwell'
-  const isShortScreener = screenerId === 'longwell-short'
-
   return (
     <>
-      {isShortScreener && (
-        <>
-          <Script
-            src="https://www.googletagmanager.com/gtag/js?id=AW-17958682844"
-            strategy="afterInteractive"
-          />
-          <Script id="google-ads-config" strategy="afterInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'AW-17958682844');
-            `}
-          </Script>
-        </>
-      )}
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=AW-17958682844"
+        strategy="afterInteractive"
+      />
+      <Script id="google-ads-config" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'AW-17958682844');
+        `}
+      </Script>
       <FocusGroupComplete
         privacyPolicyUrl={campaign.privacy_policy_url}
         termsUrl="/terms"
